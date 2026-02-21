@@ -1,6 +1,6 @@
 import warnings
 import django
-from django import VERSION
+from django import VERSION as DJANGO_VERSION
 from django.core.exceptions import ValidationError
 from ipaddress import (
     IPv4Address,
@@ -14,6 +14,8 @@ from ipaddress import (
     ip_network,
 )
 from netaddr import EUI
+import sys
+
 
 from django.db import IntegrityError
 from django.db.models import F
@@ -38,6 +40,9 @@ from test.models import (
     AggregateTestModel,
     AggregateTestChildModel
 )
+
+
+PYTHON_VERSION = (sys.version_info.major, sys.version_info.minor)
 
 
 class BaseSqlTestCase(object):
@@ -144,7 +149,7 @@ class BaseInetTestCase(BaseSqlTestCase):
         )
 
     def test_search_lookup_fails(self):
-        if VERSION >= (2, 0):
+        if DJANGO_VERSION >= (2, 0):
             expected = FieldError
         else:
             expected = NotImplementedError
@@ -483,6 +488,12 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         self.assertEqual(query.count(), 1)
         self.assertEqual(query[0].field, ip_address('10.1.2.1'))
 
+    @skipIf(PYTHON_VERSION < (3, 9), 'Scopes were added in Python 3.9')
+    def test_ipv6_strip_scope(self):
+        instance = self.model.objects.create(field='2001:db8::1%foo')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertEqual(str(instance.field), '2001:db8::1')
+
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
@@ -779,7 +790,7 @@ class TestAggregate(TestCase):
 
 class TestConstraints(TestCase):
 
-    @skipIf(VERSION < (4, 1), 'Check constraint validation is supported from django 4.1 onwards')
+    @skipIf(DJANGO_VERSION < (4, 1), 'Check constraint validation is supported from django 4.1 onwards')
     def test_check_constraint(self):
         from test.models import ConstraintModel
 
