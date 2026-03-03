@@ -1,6 +1,6 @@
 from django import VERSION
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import CASCADE, ForeignKey, Model
+from django.db.models import CASCADE, ForeignKey, Model, Transform
 
 from netfields import (
     CidrAddressField,
@@ -155,3 +155,14 @@ elif VERSION >= (4, 1):
                     name="inet_contained",
                 ),
             )
+
+
+@InetAddressField.register_lookup
+class Hostmask(Transform):
+
+    lookup_name = 'hostmask'
+    function = 'hostmask'
+
+    @property
+    def output_field(self):
+        return InetAddressField()

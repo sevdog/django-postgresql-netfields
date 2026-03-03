@@ -94,7 +94,7 @@ class _NetAddressField(models.Field):
         if value is None:
             return None
 
-        if self.model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+        if hasattr(self, 'model') and self.model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
             is_array_field = True
         else:
             is_array_field = False

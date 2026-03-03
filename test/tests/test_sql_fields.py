@@ -311,6 +311,9 @@ class BaseInetFieldTestCase(BaseInetTestCase):
     def test_query_filter_contains_ipnetwork(self):
         self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
 
+    def test_query_with_inet_function(self):
+        list(self.model.objects.values('field__hostmask'))
+
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1/32'
