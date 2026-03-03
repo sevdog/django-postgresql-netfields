@@ -92,7 +92,7 @@ class TestInetFieldFunctions(TestCase):
         qs = InetTestModel.objects.all()
         self.assertEqual(qs[0].field, ip_interface('10.1.0.1/24'))
         self.assertEqual(qs[1].field, ip_interface('2001:4f8:3:ba::1/120'))
- 
+
     def test_as_text(self):
         qs = InetTestModel.objects.annotate(text=AsText(F('field')))
         self.assertEqual(qs[0].text, '10.1.0.1/16')
@@ -150,6 +150,10 @@ class TestCidrFieldFunctions(TestCase):
         qs = CidrTestModel.objects.annotate(broadcast=Broadcast(F('field')))
         self.assertEqual(qs[0].broadcast, ip_interface('10.1.255.255/16'))
         self.assertEqual(qs[1].broadcast, ip_interface('2001:4f8:3:ba:ffff:ffff:ffff:ffff/64'))
+
+    def test_broadcast_as_alias(self):
+        qs = CidrTestModel.objects.all().alias(broadcast=Broadcast(F('field'))).filter(broadcast='10.1.255.255/16')
+        self.assertEqual(qs.count(), 1)
 
     def test_family(self):
         qs = CidrTestModel.objects.annotate(family=Family(F('field')))
